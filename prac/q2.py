@@ -1,7 +1,8 @@
 import random, math, statistics
+import os, time
 
 def main():
-	lambd = 0.04
+	lambd = 0.1
 	arrivals = init_arrivals(lambd)
 	simulate(arrivals, 20, 4)
 
@@ -19,12 +20,17 @@ def simulate(arrivals, mu, sigma):
 	queue_sizes = []
 
 	for ev in events[1:]:
+		os.system('clear')
 		if ev[1] == "arrival":
 			queue_count += 1
-			print("llego uno: " + str(queue_count) + " time: " + str(ev[0]))
+			print('O' * queue_count)
+			time.sleep(0.5)
+			#print("llego uno: " + str(queue_count) + " time: " + str(ev[0]))
 		else:
 			queue_count = queue_count - 1 if queue_count > 0 else 0
-			print("se fue uno: " + str(queue_count) + " time: " + str(ev[0]))
+			print('O' * queue_count)
+			time.sleep(0.5)
+			#print("se fue uno: " + str(queue_count) + " time: " + str(ev[0]))
 
 		if ev[0] < (8 * 60):
 			queue_sizes.append(queue_count)
