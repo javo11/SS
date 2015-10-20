@@ -6,5 +6,10 @@ class Client(Host):
 		self.action = env.process(self.run())
 
 	def run(self):
-		c = self.env.simulation.HTTPServer.request_download(self)
+		c = self.env.sim.HTTPServer.upload_to(self, range(self.env.sim.piece_count))
 		self.downloads.append(c)
+
+		while True:
+			yield self.env.timeout(c.latency)
+			piece = yield c.store.get()
+			print("received piece " + str(piece) + " at " + str(self.env.now))

@@ -13,15 +13,20 @@ class Host:
 		self.downloads = []
 		self.pieces = set()
 
-	def request_download(self, other, indices):
+	def upload_to(self, other, indices):
 		"""
 		Transfer files from self to other
 		"""
 		if not self.downloads:
-			cap = connection.capacity_for(self.up_mbps, 10, self.env.simulation.mtu)
-			indices = range(self.env.simulation.piece_count)
-			c = connection.Connection(self.env, self, other, cap, indices)
+			latency = 10 #change
+			cap = connection.capacity_for(self.up_mbps, latency, self.env.sim.mtu)
+			indices = range(self.env.sim.piece_count)
+			c = connection.Connection(self.env, self, other, cap, indices, latency)
 			self.uploads.append(c)
+			self.env.process(self.begin_upload(c))
 			return c
-		else
+		else:
 		 	raise Exception("not implemented")
+
+	def begin_upload(self, connection):
+		raise NotImplementedError()
