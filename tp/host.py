@@ -1,4 +1,4 @@
-import connection
+from integer_set import IntegerSet
 
 class Host:
 	ID_COUNTER = 0
@@ -11,16 +11,13 @@ class Host:
 		Host.ID_COUNTER += 1
 		self.uploads = []
 		self.downloads = []
-		self.pieces = set()
+		self.pieces = IntegerSet()
 
-	def upload_to(self, other, indices):
-		"""
-		Transfer pieces from self to other
-		"""
-		if not self.downloads:
-			speed = self.up_mbps # CHANGE
-			c = connection.Connection(self.sim, self, other, speed, indices)
-			self.uploads.append(c)
-			return c
-		else:
-		 	raise Exception("not implemented")
+	def upload_to(self, other, other_mbps, indices):
+		raise NotImplementedError()
+
+	def upload_finished(self, c):
+		raise NotImplementedError()
+
+	def download_finished(self, c):
+		raise NotImplementedError()

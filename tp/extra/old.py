@@ -11,7 +11,7 @@ class Car:
 			charge_duration = 5
 			try:
 				yield self.env.process(self.charge(charge_duration))
-			except simpy.Interrupt:
+			except simpy.Interrupt as inter:
 				print("was interrupted")
 
 			print("start driving at: " + str(self.env.now))

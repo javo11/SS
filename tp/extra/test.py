@@ -43,3 +43,5 @@ assert(b.contains_range(range(10)))
 b.add_range(range(10, 11))
 assert(b.contains_range(range(11)))
 print("OK")
+
+print(len(b))

@@ -13,7 +13,7 @@ class Simulation:
 		self.client_down_mu = float(settings['ClientDownMu'])
 		self.client_down_sigma = float(settings['ClientDownSigma'])
 
-		self.arrival_param = 1.0 / float(settings['ArrivalLambda'])
+		self.arrival_param = float(settings['ClientsPerDay']) / (24 * 60 * 60)
 		self.mtu = int(settings['MTU'])
 		self.file_size = float(settings['FileSizeGB']) * (1024 ** 3)
 		self.piece_count = math.ceil(self.file_size / self.mtu)
@@ -28,9 +28,10 @@ class Simulation:
 
 	def run(self):
 		self.env.process(self.client_arrival_loop())
-		self.env.run(until=self.run_time)
+		self.env.run(until=20000)
 
 	def client_arrival_loop(self):
+		client_count = 0
 		while True:
 			t = random.expovariate(self.arrival_param)
 			yield self.env.timeout(t)
@@ -38,4 +39,7 @@ class Simulation:
 			print("New client arrived at: " + str(self.env.now))
 			c = Client(self, self.gen_client_down(), self.gen_client_up())
 			c.begin()
-			break
+			client_count += 1
+
+	def connection_ended(self, c):
+		pass

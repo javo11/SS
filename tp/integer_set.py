@@ -1,8 +1,10 @@
 import itertools
 
 class IntegerSet:
+	__slots__ = ['_ranges']
+
 	def __init__(self, r = None):
-		self.ranges = [r] if r and len(r) > 0 else []
+		self._ranges = [r] if r and len(r) > 0 else []
 
 	def add_num(self, n):
 		self.add_range(range(n, n + 1))
@@ -16,7 +18,7 @@ class IntegerSet:
 		merge_right = None
 		insertion_point = None
 
-		for i, elem in enumerate(self.ranges):
+		for i, elem in enumerate(self._ranges):
 			if elem[-1] + 1 < r[0]:
 				insertion_point = i
 			elif elem[0] <= r[0] <= elem[-1] + 1:
@@ -28,29 +30,32 @@ class IntegerSet:
 				break
 
 		if insertion_point is None:
-			self.ranges.insert(0, r)
+			self._ranges.insert(0, r)
 		else:
-			start = self.ranges[merge_left][0] if merge_left is not None else r[0]
-			end = self.ranges[merge_right][-1] + 1 if merge_right is not None else r[-1] + 1
+			start = self._ranges[merge_left][0] if merge_left is not None else r[0]
+			end = self._ranges[merge_right][-1] + 1 if merge_right is not None else r[-1] + 1
 			new_r = range(start, end)
 
 			del_offset = 0
 			if merge_left is not None:
-				del self.ranges[merge_left]
+				del self._ranges[merge_left]
 				del_offset = 1
 			if merge_right is not None:
-				del self.ranges[merge_right - del_offset]
+				del self._ranges[merge_right - del_offset]
 
-			self.ranges.insert(insertion_point + 1, new_r)
+			self._ranges.insert(insertion_point + 1, new_r)
 
 	def __str__(self):
 		s = "[ "
-		for i in itertools.chain.from_iterable(self.ranges):
+		for i in itertools.chain.from_iterable(self._ranges):
 			s += str(i) + " "
 		return s + "]"
 
 	def __iter__(self):
-		return itertools.chain.from_iterable(self.ranges)
+		return itertools.chain.from_iterable(self._ranges)
+
+	def __len__(self):
+		return sum(len(elem) for elem in self._ranges)
 
 	def contains_num(self, n):
 		return self.contains_range(range(n, n + 1))
@@ -58,10 +63,14 @@ class IntegerSet:
 	def contains_range(self, r):
 		if len(r) == 0:
 			return True
-		return any([self._range_contains(elem, r) for elem in self.ranges])
+		for elem in self._ranges:
+			if self._range_contains(elem, r):
+				return True
+
+		return False
 
 	def _removed_contained_by(self, r):
-		self.ranges = [elem for elem in self.ranges if not self._range_contains(r, elem)]
+		self._ranges = [elem for elem in self._ranges if not self._range_contains(r, elem)]
 
 	def _range_contains(self, a, b):
 		"""
