@@ -1,4 +1,6 @@
 from integer_set import IntegerSet
+import math
+import utils
 
 class Host:
 	ID_COUNTER = 0
@@ -21,3 +23,21 @@ class Host:
 
 	def download_finished(self, c):
 		raise NotImplementedError()
+
+	def avail_upload_space(self):
+		used_upload = math.fsum(c.speed for c in self.uploads)
+		return self.up_mbps - used_upload
+
+	def bandwidth_check_up(self):
+		used_upload = math.fsum(c.speed for c in self.uploads)
+		cond = used_upload <= self.up_mbps or utils.isclose(used_upload, self.up_mbps)
+		assert cond, "Upload BW exceeded (host ID: %d, used: %f)" % (self.id, used_upload)
+
+	def avail_download_space(self):
+		used_download = math.fsum(c.speed for c in self.downloads)
+		return self.down_mbps - used_download
+
+	def bandwidth_check_down(self):
+		used_download = math.fsum(c.speed for c in self.downloads)
+		cond = used_download <= self.down_mbps or utils.isclose(used_download, self.down_mbps)
+		assert cond, "Download BW exceeded (host ID: %d, used: %f)" % (self.id, used_download)

@@ -13,6 +13,8 @@ class Client(Host):
 
 	def upload_finished(self, c):
 		print("client acknowledges upload finished")
+		self.uploads.remove(c)
 
 	def download_finished(self, c):
 		print("client acknowledges download finished")
+		self.downloads.remove(c)
