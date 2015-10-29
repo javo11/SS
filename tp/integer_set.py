@@ -1,7 +1,12 @@
 import itertools
 
 class IntegerSet:
-	__slots__ = ['_ranges']
+	"""
+	Represents a set of integers.  Can be iterated over, in 
+	ascending order.
+	"""
+
+	__slots__ = ["_ranges"]
 
 	def __init__(self, r = None):
 		self._ranges = [r] if r and len(r) > 0 else []

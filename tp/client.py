@@ -6,6 +6,10 @@ class Client(Host):
 		super().__init__(sim, down_mbps, up_mbps)
 
 	def begin(self):
+		"""
+		Client start point.  Initially, it requests all pieces from the HTTP 
+		server.
+		"""
 		initial_request = IntegerSet(range(self.sim.piece_count)) # request all pieces
 		c = self.sim.HTTPServer.upload_to(self, self.down_mbps, initial_request)
 		self.downloads.append(c)
@@ -16,5 +20,8 @@ class Client(Host):
 		self.uploads.remove(c)
 
 	def download_finished(self, c):
+		"""
+		Download finished callback.  Decide what to download next here.
+		"""
 		print("client acknowledges download finished")
 		self.downloads.remove(c)

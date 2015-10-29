@@ -4,6 +4,11 @@ from server import Server
 from client import Client
 
 class Simulation:
+	"""
+	Simulation class contains all of the simulation's parameters,
+	and the simpy environment.
+	"""
+
 	def __init__(self, env, settings):
 		self.env = env
 
@@ -27,10 +32,18 @@ class Simulation:
 		return random.normalvariate(self.client_down_mu, self.client_down_sigma)
 
 	def run(self):
+		"""
+		Spawn the client_arrival_loop process.
+		"""
 		self.env.process(self.client_arrival_loop())
-		self.env.run(until=20000)
+		self.env.run(until=20000) # TESTING
+		# self.env.run(until=self.run_time)
 
 	def client_arrival_loop(self):
+		"""
+		Main simulation loop.  Simulation starts and ends here, after
+		self.run_time seconds have elapsed.
+		"""
 		client_count = 0
 		while True:
 			t = random.expovariate(self.arrival_param)

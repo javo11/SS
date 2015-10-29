@@ -14,14 +14,29 @@ class Connection:
 		self.action = None
 
 	def begin(self):
+		"""
+		Connection start point.  It spawns the start_transfer process.
+		Various Connections can be "running" at the same time.  Each
+		instance of Connection should start the start_transfer only once, 
+		and once it is finished, be discarded.
+		"""
 		self.action = self.sim.env.process(self.start_transfer())
 
 	def interrupt(self, info):
+		"""
+		Interrupt the start_transfer process.  Usually, in order to change
+		the transfer speed (mbps) or to end the tranfer prematurely.
+		"""
 		if not self.action:
 			raise Exception("Unable to interrupt uninitialized connection.")
 		self.action.interrupt(cause=info)
 
 	def start_transfer(self):
+		"""
+		start_transfer process.  Initially, it ends after "time" seconds have elapsed,
+		via the timeout event.  The timeout can be interrupted in order to cancel the 
+		transfer or to modify the connection speed.
+		"""
 		time = self.time_to_transfer(len(self.requested))
 		ended = False
 		completed = False
@@ -50,17 +65,27 @@ class Connection:
 					last_modified = self.sim.env.now
 					self.speed = inter.cause["new_speed"]
 
+					"""
+					Calculate time needed to end transfer using the new connection speed,
+					taking into account already transfered pieces.
+					"""
 					time = self.time_to_transfer(len(self.requested) - transfered_count)
 				else:
 					ended = True
 					completed = False
 
 				if inter.cause.get("is_last"):
+					"""
+					When updating all of a host's upload speeds, check that the
+					simulation is in a consistent state.  Only do this after all of
+					the uploads have been updated.
+					"""
 					print("IS LAST")
 					self.origin.bandwidth_check_up()
 
 		transfered_count = len(self.requested) if completed else transfered_count
 
+		# Invoke callbacks
 		self.destination.download_finished(self)
 		self.origin.upload_finished(self)
 		self.sim.connection_ended(self)

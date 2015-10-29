@@ -1,3 +1,7 @@
+"""
+Tests to check if IntegerSet is working correctly
+"""
+
 from integer_set import IntegerSet
 
 s = IntegerSet()
