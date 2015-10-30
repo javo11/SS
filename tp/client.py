@@ -15,6 +15,15 @@ class Client(Host):
 		c = self.sim.HTTPServer.upload_to(self, self.down_mbps, initial_request)
 		self.downloads.append(c)
 		c.begin()
+ 
+	def upload_to(self, other, other_mbps, indices):
+		speed = min(self.up_mbps, other_mbps)
+		c = Connection(self.sim, self, other, speed, indices)
+		self.uploads.append(c)
+		return c
+
+	def external_transfer_finished(self, c):
+		pass
 
 	def upload_finished(self, c):
 		print("client acknowledges upload finished")

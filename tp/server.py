@@ -31,18 +31,20 @@ class Server(Host):
 			print("grow with proportion to avail_upload_space")
 			grow_sizes = [(c.destination.avail_download_space() / total_grow_space) * avail_upload_space for c in self.uploads]
 
-		for upload, grow_size in zip(self.uploads, grow_sizes):
+		for i, (upload, grow_size) in enumerate(zip(self.uploads, grow_sizes)):
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": upload.speed + grow_size # grow_size can be 0
+				"new_speed": upload.speed + grow_size, # grow_size can be 0
+				"is_last": i == len(self.uploads) - 1
 			}
 			upload.interrupt(info)
-
-		self.upload_check_event.succeed()
 
 
 	def download_finished(self, c, completed, transfered):
 		raise Exception("Invalid Simulation state: server downloading files.")
+
+	def external_transfer_finished(self, c):
+		pass
 
 	def upload_to(self, other, other_mbps, indices):
 		"""
@@ -65,6 +67,9 @@ class Server(Host):
 
 		return c
 
+	def should_use_torrent(self):
+		return self.avail_upload_space() < (1 - self.sim.torrent_threshold) * up_mbps
+
 	def create_upload_space(self, speed):
 		"""
 		Shrink all active uploads proportionately in order to create an upload
@@ -78,13 +83,12 @@ class Server(Host):
 		all_speeds.append(speed)
 		speeds_sum = sum(all_speeds)
 		final_speeds = [(s / speeds_sum) * self.up_mbps for s in all_speeds]
-		for upload, new_speed in zip(self.uploads, final_speeds[:-1]):
+		for upload, new_speed, i in zip(self.uploads, final_speeds[:-1], range(len(self.uploads))):
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": new_speed
+				"new_speed": new_speed,
+				"is_last": i == len(self.uploads) - 1
 			}
 			upload.interrupt(info)
-
-		self.upload_check_event.succeed()
 
 		return final_speeds[-1]

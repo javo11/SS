@@ -60,3 +60,12 @@ i_set = IntegerSet(range(4))
 i_set.add_range(range(10, 13))
 i_set.add_range(range(20, 23))
 print(i_set.take(8))
+
+i_set = IntegerSet(range(3))
+i_set.add_range(range(8, 15))
+i_set.remove_first(6)
+print(i_set)
+
+i_set = IntegerSet(range(3))
+i_set.add_range(range(8, 15))
+print([str(i) for i in i_set.split(3)])

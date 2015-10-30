@@ -30,6 +30,8 @@ class Simulation:
 
 		self.torrent_threshold = float(settings['TorrentThreshold'])
 
+		self.clients = []
+
 	def gen_client_up(self):
 		return random.normalvariate(self.client_up_mu, self.client_up_sigma)
 
@@ -59,6 +61,7 @@ class Simulation:
 
 			print("New client arrived at: " + str(self.env.now))
 			c = Client(self, self.gen_client_down(), self.gen_client_up(), self.gen_client_wait_time())
+			self.clients.append(c)
 			c.begin()
 			client_count += 1
 
@@ -66,4 +69,5 @@ class Simulation:
 		print("Client disconnected")
 
 	def connection_ended(self, c):
-		pass
+		for client in self.clients:
+			client.connection_ended(c)

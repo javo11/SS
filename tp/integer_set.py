@@ -1,4 +1,5 @@
 import itertools
+import math
 
 class IntegerSet:
 	"""
@@ -19,17 +20,59 @@ class IntegerSet:
 			self.add_range(r)
 
 	def take(self, n):
-		if ( n > len(self)):
+		if n > len(self):
 			raise Exception("n is bigger than the range")
 		i_set = IntegerSet()
 		for r in self._ranges:
-			if (n - len(r) > 0):
+			if n - len(r) >= 0:
 				i_set.add_range(r)
 				n-= len(r)
 			else:
 				i_set.add_range(range(r[0], r[0] + n))
+				break
 
 		return i_set
+
+	def copy(self):
+		i_set = IntegerSet()
+		i_set._ranges = [r for r in self._ranges]
+
+		return i_set
+
+	def split(self, n):
+		i_set = self.copy()
+		size = math.floor(len(self)/n)
+		parts = []
+
+		if size <= 0:
+			raise Exception("Unable to split in " + str(n) + " pieces")
+
+		for i in range(n - 1):
+			set_part = i_set.take(size)
+			i_set.remove_first(size)
+			parts.append(set_part)
+
+		size += len(self) % n
+		set_part = i_set.take(size)
+		i_set.remove_first(size)
+		parts.append(set_part)
+
+		return parts
+
+
+	def remove_first(self, n):
+		if (n > len(self)):
+			raise Exception("n is bigger than the set")
+		i = 0
+		for i, r in enumerate(self._ranges):
+			if n - len(r) > 0:
+				n -= len(r)
+			else:
+				break
+
+		self._ranges = self._ranges[i:]
+		r = self._ranges[0]
+		self._ranges[0] = range(n + r[0], r[-1] + 1)
 
 	def add_range(self, r):
 		if len(r) == 0 or self.contains_range(r):

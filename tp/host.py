@@ -26,6 +26,13 @@ class Host:
 	def download_finished(self, c, completed, transfered):
 		raise NotImplementedError()
 
+	def external_transfer_finished(self, c):
+		raise NotImplementedError()
+
+	def connection_ended(self, c):
+		if not (c.origin == self or c.destination == self):
+			self.external_transfer_finished(c)
+
 	def upload_check_process(self):
 		while True:
 			yield self.upload_check_event
