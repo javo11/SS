@@ -77,7 +77,7 @@ class Connection:
 		transfered_count = len(self.requested) if completed else transfered_count
 
 		# Invoke callbacks
-		self.destination.download_finished(self)
+		self.destination.download_finished(self, completed, transfered_count)
 		self.origin.upload_finished(self)
 		self.sim.connection_ended(self)
 

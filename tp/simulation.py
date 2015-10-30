@@ -18,6 +18,9 @@ class Simulation:
 		self.client_down_mu = float(settings['ClientDownMu'])
 		self.client_down_sigma = float(settings['ClientDownSigma'])
 
+		self.client_wait_time_mu = float(settings['ClientWaitTimeMu']) * 60
+		self.client_wait_time_sigma = float(settings['ClientWaitTimeSigma']) * 60
+
 		self.arrival_param = float(settings['ClientsPerDay']) / (24 * 60 * 60)
 		self.mtu = int(settings['MTU'])
 		self.file_size = float(settings['FileSizeGB']) * (1024 ** 3)
@@ -32,6 +35,9 @@ class Simulation:
 
 	def gen_client_down(self):
 		return random.normalvariate(self.client_down_mu, self.client_down_sigma)
+
+	def gen_client_wait_time(self):
+		return random.normalvariate(self.client_wait_time_mu, self.client_wait_time_sigma)
 
 	def run(self):
 		"""
@@ -52,9 +58,12 @@ class Simulation:
 			yield self.env.timeout(t)
 
 			print("New client arrived at: " + str(self.env.now))
-			c = Client(self, self.gen_client_down(), self.gen_client_up())
+			c = Client(self, self.gen_client_down(), self.gen_client_up(), self.gen_client_wait_time())
 			c.begin()
 			client_count += 1
+
+	def git(self):
+		print("Client disconnected")
 
 	def connection_ended(self, c):
 		pass
