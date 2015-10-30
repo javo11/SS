@@ -40,7 +40,7 @@ class Server(Host):
 			upload.interrupt(info)
 
 
-	def download_finished(self, c):
+	def download_finished(self, c, completed, transfered):
 		raise Exception("Invalid Simulation state: server downloading files.")
 
 	def upload_to(self, other, other_mbps, indices):

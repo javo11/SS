@@ -21,7 +21,7 @@ class Host:
 	def upload_finished(self, c):
 		raise NotImplementedError()
 
-	def download_finished(self, c):
+	def download_finished(self, c, completed, transfered):
 		raise NotImplementedError()
 
 	def avail_upload_space(self):

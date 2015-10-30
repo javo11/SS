@@ -49,3 +49,14 @@ assert(b.contains_range(range(11)))
 print("OK")
 
 print(len(b))
+
+i_set = IntegerSet(range(10))
+i_set.add_range(range (20, 30))
+i_set2 = IntegerSet(range(10, 20))
+i_set.add_set(i_set2)
+print(i_set)
+
+i_set = IntegerSet(range(4))
+i_set.add_range(range(10, 13))
+i_set.add_range(range(20, 23))
+print(i_set.take(8))

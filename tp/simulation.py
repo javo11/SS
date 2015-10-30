@@ -25,6 +25,8 @@ class Simulation:
 		self.HTTPServer = Server(self, 0, int(settings['HTTPUp']))
 		self.run_time = int(settings['TimeLimitDays']) * 24 * 60 * 60
 
+		self.torrent_threshold = float(settings['TorrentThreshold'])
+
 	def gen_client_up(self):
 		return random.normalvariate(self.client_up_mu, self.client_up_sigma)
 

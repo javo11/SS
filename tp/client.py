@@ -19,9 +19,15 @@ class Client(Host):
 		print("client acknowledges upload finished")
 		self.uploads.remove(c)
 
-	def download_finished(self, c):
+	def download_finished(self, c, completed, transfered):
 		"""
 		Download finished callback.  Decide what to download next here.
 		"""
 		print("client acknowledges download finished")
 		self.downloads.remove(c)
+		if completed:
+			self.pieces.add_range(c.requested)
+		else:
+			self.pieces.add_range(c.request.take(transfered))
+			raise NotImplementedError()
+		

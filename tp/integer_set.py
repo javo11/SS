@@ -14,6 +14,23 @@ class IntegerSet:
 	def add_num(self, n):
 		self.add_range(range(n, n + 1))
 
+	def add_set(self, i_set):
+		for r in i_set._ranges:
+			self.add_range(r)
+
+	def take(self, n):
+		if ( n > len(self)):
+			raise Exception("n is bigger than the range")
+		i_set = IntegerSet()
+		for r in self._ranges:
+			if (n - len(r) > 0):
+				i_set.add_range(r)
+				n-= len(r)
+			else:
+				i_set.add_range(range(r[0], r[0] + n))
+
+		return i_set
+
 	def add_range(self, r):
 		if len(r) == 0 or self.contains_range(r):
 			return
