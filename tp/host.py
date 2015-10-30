@@ -14,6 +14,8 @@ class Host:
 		self.uploads = []
 		self.downloads = []
 		self.pieces = IntegerSet()
+		self.upload_check_event = sim.env.event()
+		self.sim.env.process(self.upload_check_process())
 
 	def upload_to(self, other, other_mbps, indices):
 		raise NotImplementedError()
@@ -24,11 +26,18 @@ class Host:
 	def download_finished(self, c):
 		raise NotImplementedError()
 
+	def upload_check_process(self):
+		while True:
+			yield self.upload_check_event
+			self.upload_check_event = self.sim.env.event()
+			self.bandwidth_check_up()
+
 	def avail_upload_space(self):
 		used_upload = math.fsum(c.speed for c in self.uploads)
 		return self.up_mbps - used_upload
 
 	def bandwidth_check_up(self):
+		print("check upload up")
 		used_upload = math.fsum(c.speed for c in self.uploads)
 		cond = used_upload <= self.up_mbps or utils.isclose(used_upload, self.up_mbps)
 		assert cond, "Upload BW exceeded (host ID: %d, used: %f)" % (self.id, used_upload)

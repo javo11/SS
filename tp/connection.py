@@ -74,15 +74,6 @@ class Connection:
 					ended = True
 					completed = False
 
-				if inter.cause.get("is_last"):
-					"""
-					When updating all of a host's upload speeds, check that the
-					simulation is in a consistent state.  Only do this after all of
-					the uploads have been updated.
-					"""
-					print("IS LAST")
-					self.origin.bandwidth_check_up()
-
 		transfered_count = len(self.requested) if completed else transfered_count
 
 		# Invoke callbacks
