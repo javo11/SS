@@ -62,7 +62,7 @@ class Simulation:
 			c.begin()
 			client_count += 1
 
-	def git(self):
+	def client_disconnected(self):
 		print("Client disconnected")
 
 	def connection_ended(self, c):
