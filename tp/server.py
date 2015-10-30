@@ -31,13 +31,14 @@ class Server(Host):
 			print("grow with proportion to avail_upload_space")
 			grow_sizes = [(c.destination.avail_download_space() / total_grow_space) * avail_upload_space for c in self.uploads]
 
-		for i, (upload, grow_size) in enumerate(zip(self.uploads, grow_sizes)):
+		for upload, grow_size in zip(self.uploads, grow_sizes):
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": upload.speed + grow_size, # grow_size can be 0
-				"is_last": i == len(self.uploads) - 1
+				"new_speed": upload.speed + grow_size # grow_size can be 0
 			}
 			upload.interrupt(info)
+
+		self.upload_check_event.succeed()
 
 
 	def download_finished(self, c, completed, transfered):
@@ -77,12 +78,13 @@ class Server(Host):
 		all_speeds.append(speed)
 		speeds_sum = sum(all_speeds)
 		final_speeds = [(s / speeds_sum) * self.up_mbps for s in all_speeds]
-		for upload, new_speed, i in zip(self.uploads, final_speeds[:-1], range(len(self.uploads))):
+		for upload, new_speed in zip(self.uploads, final_speeds[:-1]):
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": new_speed,
-				"is_last": i == len(self.uploads) - 1
+				"new_speed": new_speed
 			}
 			upload.interrupt(info)
+
+		self.upload_check_event.succeed()
 
 		return final_speeds[-1]
