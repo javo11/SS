@@ -26,13 +26,9 @@ class IntegerSet:
 		q = A.copy()
 		q.remove_set(other)
 
-		print("q: ", q._ranges)
-
 		r = other.copy()
 		r.add_set(self)
 		r.remove_set(self)
-
-		print("r: ", r._ranges)
 		
 		A.remove_set(q)
 		A.remove_set(r)

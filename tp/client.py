@@ -16,6 +16,10 @@ class Client(Host):
 		initial_request = IntegerSet(range(self.sim.piece_count))
 		self._pending = initial_request.split(1000)
 		random.shuffle(self._pending)
+		self._request_pieces()
+
+
+	def _request_pieces(self):
 		used_down = 0
 		to_remove = []
 
@@ -30,9 +34,13 @@ class Client(Host):
 					if len(intersection):
 						c = client.upload_to(self, self.down_mbps - used_down, intersection)
 						used_down += c.speed
+						self.downloads.append(c)
+						c.begin()
 
 					if len(intersection) == len(i_set):
 						to_remove.append(i_set)
+					else:
+						i_set.remove_set(intersection)
 
 				for s in to_remove:
 					self._pending.remove(s)
@@ -49,7 +57,8 @@ class Client(Host):
 		return c
 
 	def external_transfer_finished(self, c):
-		pass
+		if self.has_download_space():
+			self._request_pieces()
 
 	def upload_finished(self, c):
 		print("client acknowledges upload finished")

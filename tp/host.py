@@ -56,6 +56,9 @@ class Host:
 		used_download = math.fsum(c.speed for c in self.downloads)
 		return self.down_mbps - used_download
 
+	def has_download_space(self):
+		return self.avail_download_space() > 0
+
 	def bandwidth_check_down(self):
 		used_download = math.fsum(c.speed for c in self.downloads)
 		cond = used_download <= self.down_mbps or utils.isclose(used_download, self.down_mbps)
