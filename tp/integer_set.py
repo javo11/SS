@@ -125,6 +125,36 @@ class IntegerSet:
 	def contains_num(self, n):
 		return self.contains_range(range(n, n + 1))
 
+	def remove_set(self, other):
+		for r in other._ranges:
+			self.remove_range(r)
+
+	def remove_range(self, target_r):
+		self._removed_contained_by(target_r)
+		left_range = None
+		right_range = None
+		for i, r in enumerate(self._ranges):  
+			if r[0] > target_r[-1]:
+				break
+
+			if r[-1] < target_r[0]:
+				continue
+			
+			if r[0] <= target_r[0]:
+				left_range = i
+			else:
+				right_range = i
+
+		if left_range is not None:
+			r = self._ranges[left_range]
+			self._ranges[left_range] = range(r[0], target_r[0])
+			if right_range is None:
+				self.add_range(range(target_r[-1] + 1, r[-1] + 1))
+			
+		if right_range is not None:
+			r = self._ranges[right_range]
+			self._ranges[right_range]  = range(target_r[-1] + 1, r[-1] + 1)
+
 	def contains_range(self, r):
 		if len(r) == 0:
 			return True

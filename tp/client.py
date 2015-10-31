@@ -1,5 +1,6 @@
 from host import Host
 from integer_set import IntegerSet
+import random
 
 class Client(Host):
 	def __init__(self, sim, down_mbps, up_mbps, wait_time):
@@ -11,11 +12,24 @@ class Client(Host):
 		Client start point.  Initially, it requests all pieces from the HTTP 
 		server.
 		"""
-		initial_request = IntegerSet(range(self.sim.piece_count)) # request all pieces
-		c = self.sim.HTTPServer.upload_to(self, self.down_mbps, initial_request)
-		self.downloads.append(c)
-		c.begin()
- 
+		initial_request = IntegerSet(range(self.sim.piece_count))
+		self._pending = initial_requests.split(1000)
+		random.shuffle(requests)
+		if self.sim.HTTPServer.should_use_torrent():
+			for client in self.sim.clients:
+				if not client.has_upload_space():
+					continue
+				for i_set in self._pending:
+					difference = client.pieces.copy().remove_set(i_set)
+					if len(difference) != len(i_set):
+
+
+
+		else:
+			c = self.sim.HTTPServer.upload_to(self, self.down_mbps, self._pending[0])
+			self.downloads.append(c)
+			c.begin()
+
 	def upload_to(self, other, other_mbps, indices):
 		speed = min(self.up_mbps, other_mbps)
 		c = Connection(self.sim, self, other, speed, indices)

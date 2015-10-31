@@ -43,6 +43,9 @@ class Host:
 		used_upload = math.fsum(c.speed for c in self.uploads)
 		return self.up_mbps - used_upload
 
+	def has_upload_space(self):
+		return self.avail_upload_space() > 0
+
 	def bandwidth_check_up(self):
 		print("check upload up")
 		used_upload = math.fsum(c.speed for c in self.uploads)

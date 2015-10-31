@@ -52,10 +52,10 @@ class Connection:
 				ended = True
 				completed = True
 			except simpy.Interrupt as inter:
-				print("Transfer interrupted from host %d" % self.origin.id, end="")
-				print(" to host %d" % self.destination.id, end="")
-				print(" at %f" % self.sim.env.now, end="")
-				print(" (reason: %s)" % str(inter.cause["reason"]))
+				# print("Transfer interrupted from host %d" % self.origin.id, end="")
+				# print(" to host %d" % self.destination.id, end="")
+				# print(" at %f" % self.sim.env.now, end="")
+				# print(" (reason: %s)" % str(inter.cause["reason"]))
 
 				self.destination.bandwidth_check_down()
 				elapsed = self.sim.env.now - last_modified
