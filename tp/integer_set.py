@@ -19,6 +19,25 @@ class IntegerSet:
 		for r in i_set._ranges:
 			self.add_range(r)
 
+	def intersect(self, other):
+		A = self.copy()
+		A.add_set(other)
+		
+		q = A.copy()
+		q.remove_set(other)
+
+		print("q: ", q._ranges)
+
+		r = other.copy()
+		r.add_set(self)
+		r.remove_set(self)
+
+		print("r: ", r._ranges)
+		
+		A.remove_set(q)
+		A.remove_set(r)
+		return A
+
 	def take(self, n):
 		if n > len(self):
 			raise Exception("n is bigger than the range")
@@ -140,7 +159,7 @@ class IntegerSet:
 			if r[-1] < target_r[0]:
 				continue
 			
-			if r[0] <= target_r[0]:
+			if r[0] < target_r[0]:
 				left_range = i
 			else:
 				right_range = i
@@ -153,7 +172,7 @@ class IntegerSet:
 			
 		if right_range is not None:
 			r = self._ranges[right_range]
-			self._ranges[right_range]  = range(target_r[-1] + 1, r[-1] + 1)
+			self._ranges[right_range] = range(target_r[-1] + 1, r[-1] + 1)
 
 	def contains_range(self, r):
 		if len(r) == 0:

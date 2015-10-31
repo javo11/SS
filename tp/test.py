@@ -76,3 +76,12 @@ i_set2 = IntegerSet(range(8, 15))
 i_set2.add_range(range(30, 32))
 i_set.remove_set(i_set2)
 print(i_set)
+
+print("---------------------")
+
+s1 = IntegerSet(range(20))
+s1.add_range(range(25, 35))
+s2 = IntegerSet()
+s2.add_range(range(8, 15))
+s2.add_range(range(30, 32))
+print(s1.intersect(s2))
