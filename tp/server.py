@@ -40,7 +40,9 @@ class Server(Host):
 				"new_speed": upload.speed + grow_size # grow_size can be 0
 			}
 			upload.interrupt(info)
-		self.upload_check_event.succeed()
+
+		if not self.upload_check_event.triggered:
+			self.upload_check_event.succeed()
 
 	def download_finished(self, c, completed, transfered):
 		raise Exception("Invalid Simulation state: server downloading files.")
@@ -91,5 +93,8 @@ class Server(Host):
 				"new_speed": new_speed
 			}
 			upload.interrupt(info)
-		self.upload_check_event.succeed()
+
+		if not self.upload_check_event.triggered:
+			self.upload_check_event.succeed()
+
 		return final_speeds[-1]
