@@ -62,4 +62,4 @@ class Host:
 	def bandwidth_check_down(self):
 		used_download = math.fsum(c.speed for c in self.downloads)
 		cond = used_download <= self.down_mbps or utils.isclose(used_download, self.down_mbps)
-		assert cond, "Download BW exceeded (host ID: %d, used: %f)" % (self.id, used_download)
+		assert cond, "Download BW exceeded (host ID: %d, used: %f, original_mbps: %f)" % (self.id, used_download, self.down_mbps)

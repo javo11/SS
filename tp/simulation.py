@@ -65,8 +65,8 @@ class Simulation:
 			c.begin()
 			client_count += 1
 
-	def client_disconnected(self):
-		print("Client disconnected")
+	def client_disconnected(self, client):
+		self.clients.remove(client)
 
 	def connection_ended(self, c):
 		for client in self.clients:

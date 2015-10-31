@@ -6,6 +6,8 @@ class Connection:
 	InterruptReason = Enum("InterruptReason", "speed_modified closed")
 
 	def __init__(self, sim, origin, destination, speed, requested):
+		if speed <= 0:
+			raise Exception("speed cannot be zero")
 		self.sim = sim
 		self.origin = origin
 		self.destination = destination
@@ -63,7 +65,10 @@ class Connection:
 
 				if inter.cause["reason"] == Connection.InterruptReason.speed_modified:
 					last_modified = self.sim.env.now
+					print(str(inter.cause["new_speed"] - self.speed) + "   " + str(self.destination.avail_download_space()) + "   " + str(self.destination.id))
 					self.speed = inter.cause["new_speed"]
+					if self.speed <= 0:
+						raise Exception("speed cannot be zero")
 
 					"""
 					Calculate time needed to end transfer using the new connection speed,
@@ -71,6 +76,7 @@ class Connection:
 					"""
 					time = self.time_to_transfer(len(self.requested) - transfered_count)
 				else:
+					print("CLOSED")
 					ended = True
 					completed = False
 

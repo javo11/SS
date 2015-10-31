@@ -90,6 +90,9 @@ class IntegerSet:
 		self._ranges[0] = range(n + r[0], r[-1] + 1)
 
 	def add_range(self, r):
+		if type(r) is not range:
+			raise TypeError()
+
 		if len(r) == 0 or self.contains_range(r):
 			return
 

@@ -32,6 +32,9 @@ class Server(Host):
 			grow_sizes = [(c.destination.avail_download_space() / total_grow_space) * avail_upload_space for c in self.uploads]
 
 		for upload, grow_size in zip(self.uploads, grow_sizes):
+			if grow_size <= 0:
+				continue
+			print("SERVER:   " + str(grow_size) + "   " + str(upload.destination.avail_download_space()) + "   " + str(upload.destination.id))
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
 				"new_speed": upload.speed + grow_size # grow_size can be 0
