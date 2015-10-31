@@ -67,7 +67,7 @@ class Server(Host):
 		return c
 
 	def should_use_torrent(self):
-		return self.avail_upload_space() < (1 - self.sim.torrent_threshold) * up_mbps
+		return self.avail_upload_space() < (1 - self.sim.torrent_threshold) * self.up_mbps
 
 	def create_upload_space(self, speed):
 		"""
