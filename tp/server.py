@@ -28,15 +28,21 @@ class Server(Host):
 		else:
 			grow_sizes = [(c.destination.avail_download_space() / total_grow_space) * avail_upload_space for c in self.uploads]
 
-		for upload, grow_size in zip(self.uploads, grow_sizes):
-			if grow_size <= 0:
+		self.update_upload_speeds(grow_sizes, True)
+
+	def update_upload_speeds(self, speeds, additive):
+		if len(self.uploads) != len(speeds):
+			raise Exception("Invalid speeds length, must match self.uploads")
+
+		factor = 1 if additive else 0
+		for upload, speed in zip(self.uploads, speeds):
+			skip = additive and utils.isclose(0, speed)
+			skip |= not additive and utils.isclose(speed, upload.speed)
+			if skip:
 				continue
-			# print("SERVER:   " + str(grow_size) + "   " + str(upload.destination.avail_download_space()) + "   " + str(upload.destination.id))
-			info = {
-				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": upload.speed + grow_size # grow_size can be 0
-			}
-			upload.interrupt(info)
+
+			new_speed = (upload.speed * factor) + speed
+			upload.interrupt((Connection.SPEED_MODIFIED, new_speed))
 
 		if not self.upload_check_event.triggered:
 			self.upload_check_event.succeed()
@@ -51,6 +57,9 @@ class Server(Host):
 		"""
 		Transfer pieces from self to other
 		"""
+		if not self.can_use_http():
+			raise Exception("HTTP downloads are not enabled")
+
 		if not self.uploads:
 			# print("SERVER: No active uploads, assigning min bw.")
 			speed = min(self.up_mbps, other_mbps)
@@ -68,8 +77,14 @@ class Server(Host):
 
 		return c
 
-	def should_use_torrent(self):
+	def can_use_torrent(self):
 		return self.avail_upload_space() < (1 - self.sim.torrent_threshold) * self.up_mbps
+
+	def can_use_http(self):
+		if not self.uploads:
+			return True
+		per_cl_up = self.up_mbps / len(self.uploads)
+		return per_cl_up > self.sim.client_down_mu
 
 	def create_upload_space(self, speed):
 		"""
@@ -84,14 +99,7 @@ class Server(Host):
 		all_speeds.append(speed)
 		speeds_sum = sum(all_speeds)
 		final_speeds = [(s / speeds_sum) * self.up_mbps for s in all_speeds]
-		for upload, new_speed in zip(self.uploads, final_speeds[:-1]):
-			info = {
-				"reason": Connection.InterruptReason.speed_modified,
-				"new_speed": new_speed
-			}
-			upload.interrupt(info)
+		client_speed = final_speeds.pop()
+		self.update_upload_speeds(final_speeds, False)
 
-		if not self.upload_check_event.triggered:
-			self.upload_check_event.succeed()
-
-		return final_speeds[-1]
+		return client_speed

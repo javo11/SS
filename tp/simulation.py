@@ -29,6 +29,7 @@ class Simulation:
 		self.run_time = int(settings['TimeLimitDays']) * 24 * 60 * 60
 
 		self.torrent_threshold = float(settings['TorrentThreshold'])
+		self.stats_interval = float(settings['UpdateStatsInterval']) * 60
 
 		self.clients = []
 
@@ -45,7 +46,10 @@ class Simulation:
 		"""
 		Spawn the client_arrival_loop process.
 		"""
+		random.seed(1338)
+
 		self.env.process(self.client_arrival_loop())
+		self.env.process(self.stats_update_loop())
 		self.env.run(until=20000) # TESTING
 		# self.env.run(until=self.run_time)
 
@@ -59,11 +63,16 @@ class Simulation:
 			t = random.expovariate(self.arrival_param)
 			yield self.env.timeout(t)
 
-			print("New client arrived at: " + str(self.env.now))
+			# print("New client arrived at: " + str(self.env.now))
 			c = Client(self, self.gen_client_down(), self.gen_client_up(), self.gen_client_wait_time())
 			self.clients.append(c)
 			c.begin()
 			client_count += 1
+
+	def stats_update_loop(self):
+		while True:
+			yield self.env.timeout(self.stats_interval)
+			print("client count: ", len(self.clients), " at: ", self.env.now)
 
 	def client_disconnected(self, client):
 		self.clients.remove(client)

@@ -1,9 +1,11 @@
 import simpy
 import math
-from enum import Enum
 
 class Connection:
-	InterruptReason = Enum("InterruptReason", "speed_modified closed")
+	SPEED_MODIFIED = 1
+	CLOSED = 2
+
+	__slots__ = ["sim", "origin", "destination", "speed", "requested", "action"]
 
 	def __init__(self, sim, origin, destination, speed, requested):
 		if speed <= 0:
@@ -59,14 +61,13 @@ class Connection:
 				# print(" at %f" % self.sim.env.now, end="")
 				# print(" (reason: %s)" % str(inter.cause["reason"]))
 
-				self.destination.bandwidth_check_down()
 				elapsed = self.sim.env.now - last_modified
 				transfered_count += math.floor((elapsed * self.speed * 1024**2) / self.sim.mtu)
 
-				if inter.cause["reason"] == Connection.InterruptReason.speed_modified:
+				if inter.cause[0] == Connection.SPEED_MODIFIED:
 					last_modified = self.sim.env.now
 					# print(str(inter.cause["new_speed"] - self.speed) + "   " + str(self.destination.avail_download_space()) + "   " + str(self.destination.id))
-					self.speed = inter.cause["new_speed"]
+					self.speed = inter.cause[1]
 					if self.speed <= 0:
 						raise Exception("speed cannot be zero")
 

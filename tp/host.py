@@ -53,7 +53,8 @@ class Host:
 
 	def avail_download_space(self):
 		used_download = math.fsum(c.speed for c in self.downloads)
-		return self.down_mbps - used_download
+		free = self.down_mbps - used_download
+		return 0 if utils.isclose(0, free) else free
 
 	def has_download_space(self):
 		return self.avail_download_space() > 0

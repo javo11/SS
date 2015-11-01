@@ -16,7 +16,7 @@ class Client(Host):
 		"""
 
 		initial_request = IntegerSet(range(self.sim.piece_count))
-		self._pending = initial_request.split(1000)
+		self._pending = initial_request.split(100)
 		random.shuffle(self._pending)
 		self._request_pieces()
 		# print("should use torrent: ", self.sim.HTTPServer.should_use_torrent())
@@ -24,11 +24,12 @@ class Client(Host):
 
 	def _request_pieces(self):
 		to_remove = []
+		HTTPServer = self.sim.HTTPServer
 
 		if not self.has_download_space():
 			return
 
-		if self.sim.HTTPServer.should_use_torrent():
+		if HTTPServer.can_use_torrent():
 			for client in self.sim.clients:
 				if not self.has_download_space():
 					break
@@ -45,6 +46,7 @@ class Client(Host):
 						c = client.upload_to(self, self.avail_download_space(), intersection)
 						self.downloads.append(c)
 						c.begin()
+						# print("started p2p connection, len: ", len(intersection))
 
 						if len(intersection) == len(i_set):
 							to_remove.append(i_set)
@@ -56,14 +58,20 @@ class Client(Host):
 				for s in to_remove:
 					self._pending.remove(s)
 				to_remove.clear()
-		else:
-			if self.connected_to(self.sim.HTTPServer):
-				return
 
-			c = self.sim.HTTPServer.upload_to(self, self.avail_download_space(), self._pending[0])
-			self._pending.pop(0)
-			self.downloads.append(c)
-			c.begin()
+		self.bandwidth_check_down()
+
+		if not self._pending or \
+			not self.has_download_space() or \
+			not HTTPServer.can_use_http() or \
+			self.connected_to(HTTPServer):
+			return
+
+		c = HTTPServer.upload_to(self, self.avail_download_space(), self._pending[0])
+		self._pending.pop(0)
+		self.downloads.append(c)
+		c.begin()
+		self.bandwidth_check_down()
 
 	def connected_to(self, host):
 		for c in self.downloads:
@@ -81,7 +89,7 @@ class Client(Host):
 		return c
 
 	def external_transfer_finished(self, c):
-		if self.has_download_space() and self._pending:
+		if self._pending:
 			self._request_pieces()
 
 	def upload_finished(self, c):
@@ -92,10 +100,10 @@ class Client(Host):
 		Download finished callback.  Decide what to download next here.
 		"""
 		self.downloads.remove(c)
-		if completed:
+		if completed or transfered == len(c.requested):
 			self.pieces.add_set(c.requested)
 		else:
-			transfered_pieces = c.request.take(transfered)
+			transfered_pieces = c.requested.take(transfered)
 			self.pieces.add_set(transfered_pieces)
 			c.requested.remove_set(transfered_pieces)
 			self._pending.append(c.requested)
@@ -108,9 +116,6 @@ class Client(Host):
 	def disconnect(self):
 		yield self.sim.env.timeout(self._wait_time)
 		self.sim.client_disconnected(self)
-		for upload, in self.uploads:
-			info = {
-				"reason": Connection.InterruptReason.closed
-			}
-			upload.interrupt(info)
-		print("client disconnected")
+		for upload in self.uploads:
+			upload.interrupt((Connection.CLOSED,)) # single-element tuple
+		# print("client disconnected")

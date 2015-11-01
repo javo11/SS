@@ -36,7 +36,10 @@ class IntegerSet:
 
 	def take(self, n):
 		if n > len(self):
-			raise Exception("n is bigger than the range")
+			raise Exception("Set contains less elements than requested amount")
+		elif n == len(self):
+			return self.copy()
+
 		i_set = IntegerSet()
 		for r in self._ranges:
 			if n - len(r) >= 0:
@@ -60,7 +63,7 @@ class IntegerSet:
 		parts = []
 
 		if size <= 0:
-			raise Exception("Unable to split in " + str(n) + " pieces")
+			raise Exception("Unable to split in " + str(n) + " parts")
 
 		for i in range(n - 1):
 			set_part = i_set.take(size)
@@ -77,7 +80,7 @@ class IntegerSet:
 
 	def remove_first(self, n):
 		if (n > len(self)):
-			raise Exception("n is bigger than the set")
+			raise Exception("Set contains less elements than requested amount")
 		i = 0
 		for i, r in enumerate(self._ranges):
 			if n - len(r) > 0:
