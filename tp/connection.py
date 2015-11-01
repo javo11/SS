@@ -48,9 +48,9 @@ class Connection:
 		while not ended:
 			try:
 				yield self.sim.env.timeout(time)
-				print("Transfer complete from host %d" % self.origin.id, end="")
-				print(" to host %d" % self.destination.id, end="")
-				print(" at %f" % self.sim.env.now)
+				# print("Transfer complete from host %d" % self.origin.id, end="")
+				# print(" to host %d" % self.destination.id, end="")
+				# print(" at %f" % self.sim.env.now)
 				ended = True
 				completed = True
 			except simpy.Interrupt as inter:
@@ -65,7 +65,7 @@ class Connection:
 
 				if inter.cause["reason"] == Connection.InterruptReason.speed_modified:
 					last_modified = self.sim.env.now
-					print(str(inter.cause["new_speed"] - self.speed) + "   " + str(self.destination.avail_download_space()) + "   " + str(self.destination.id))
+					# print(str(inter.cause["new_speed"] - self.speed) + "   " + str(self.destination.avail_download_space()) + "   " + str(self.destination.id))
 					self.speed = inter.cause["new_speed"]
 					if self.speed <= 0:
 						raise Exception("speed cannot be zero")
@@ -76,7 +76,6 @@ class Connection:
 					"""
 					time = self.time_to_transfer(len(self.requested) - transfered_count)
 				else:
-					print("CLOSED")
 					ended = True
 					completed = False
 

@@ -47,7 +47,6 @@ class Host:
 		return self.avail_upload_space() > 0
 
 	def bandwidth_check_up(self):
-		print("check upload up")
 		used_upload = math.fsum(c.speed for c in self.uploads)
 		cond = used_upload <= self.up_mbps or utils.isclose(used_upload, self.up_mbps)
 		assert cond, "Upload BW exceeded (host ID: %d, used: %f)" % (self.id, used_upload)

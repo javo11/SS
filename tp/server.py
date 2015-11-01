@@ -8,7 +8,6 @@ class Server(Host):
 		super().__init__(sim, down_mbps, up_mbps)
 
 	def upload_finished(self, con):
-		print("server acknowledges upload finished")
 		self.uploads.remove(con)
 
 		if not self.uploads:
@@ -25,16 +24,14 @@ class Server(Host):
 		avail_upload_space = self.avail_upload_space()
 
 		if total_grow_space <= avail_upload_space:
-			print("grow with original spaces")
 			grow_sizes = [c.destination.avail_download_space() for c in self.uploads]
 		else:
-			print("grow with proportion to avail_upload_space")
 			grow_sizes = [(c.destination.avail_download_space() / total_grow_space) * avail_upload_space for c in self.uploads]
 
 		for upload, grow_size in zip(self.uploads, grow_sizes):
 			if grow_size <= 0:
 				continue
-			print("SERVER:   " + str(grow_size) + "   " + str(upload.destination.avail_download_space()) + "   " + str(upload.destination.id))
+			# print("SERVER:   " + str(grow_size) + "   " + str(upload.destination.avail_download_space()) + "   " + str(upload.destination.id))
 			info = {
 				"reason": Connection.InterruptReason.speed_modified,
 				"new_speed": upload.speed + grow_size # grow_size can be 0
