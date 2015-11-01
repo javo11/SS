@@ -2,6 +2,7 @@ from host import Host
 from integer_set import IntegerSet
 from connection import Connection
 import random
+import math
 import utils
 
 class Client(Host):
@@ -14,16 +15,19 @@ class Client(Host):
 		Client start point.  Initially, it requests all pieces from the HTTP 
 		server.
 		"""
-
-		initial_request = IntegerSet(range(self.sim.piece_count))
-		self._pending = initial_request.split(100)
-		random.shuffle(self._pending)
+		self._pending = IntegerSet(range(self.sim.piece_count))
+		self._target_chunk_size = math.ceil(self.sim.piece_count / 5)
 		self._request_pieces()
-		# print("should use torrent: ", self.sim.HTTPServer.should_use_torrent())
 
+	def get_random_chunk(self):
+		split_n = math.floor(len(self._pending) / self._target_chunk_size)
+		if split_n == 0:
+			return self._pending.copy()
+		
+		return random.choice(self._pending.split(split_n))
+			
 
 	def _request_pieces(self):
-		to_remove = []
 		HTTPServer = self.sim.HTTPServer
 
 		if not self.has_download_space():
@@ -39,36 +43,34 @@ class Client(Host):
 				if self.connected_to(client):
 					continue
 
-				for i_set in self._pending:
-					intersection = i_set.intersect(client.pieces)
-					if len(intersection):
-						#print(str(self.avail_download_space()) + "   " + str(self.id))
-						c = client.upload_to(self, self.avail_download_space(), intersection)
-						self.downloads.append(c)
-						c.begin()
-						# print("started p2p connection, len: ", len(intersection))
+				intersection = self._pending.intersect(client.pieces)
+				if len(intersection):
+					if len(intersection) > self._target_chunk_size:
+						intersection = intersection.take(self._target_chunk_size)
 
-						if len(intersection) == len(i_set):
-							to_remove.append(i_set)
-						else:
-							i_set.remove_set(intersection)
+					c = client.upload_to(self, self.avail_download_space(), intersection)
+					self.downloads.append(c)
+					c.begin()
 
-						break
-
-				for s in to_remove:
-					self._pending.remove(s)
-				to_remove.clear()
+					self._pending.remove_set(intersection)
 
 		self.bandwidth_check_down()
 
-		if not self._pending or \
+		if not len(self._pending) or \
 			not self.has_download_space() or \
 			not HTTPServer.can_use_http() or \
 			self.connected_to(HTTPServer):
 			return
 
-		c = HTTPServer.upload_to(self, self.avail_download_space(), self._pending[0])
-		self._pending.pop(0)
+		next_chunk = self.get_random_chunk()
+		c = HTTPServer.upload_to(self, self.avail_download_space(), next_chunk)
+		try:
+			self._pending.remove_set(next_chunk)
+		except:
+			print(len(next_chunk))
+			import code; code.interact(local=locals())
+			raise
+
 		self.downloads.append(c)
 		c.begin()
 		self.bandwidth_check_down()
@@ -89,7 +91,7 @@ class Client(Host):
 		return c
 
 	def external_transfer_finished(self, c):
-		if self._pending:
+		if len(self._pending):
 			self._request_pieces()
 
 	def upload_finished(self, c):
@@ -106,7 +108,7 @@ class Client(Host):
 			transfered_pieces = c.requested.take(transfered)
 			self.pieces.add_set(transfered_pieces)
 			c.requested.remove_set(transfered_pieces)
-			self._pending.append(c.requested)
+			self._pending.add_set(c.requested)
 
 		if len(self.pieces) == self.sim.piece_count:
 			self.sim.env.process(self.disconnect())

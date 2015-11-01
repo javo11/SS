@@ -81,16 +81,18 @@ class IntegerSet:
 	def remove_first(self, n):
 		if (n > len(self)):
 			raise Exception("Set contains less elements than requested amount")
-		i = 0
+		k = 0
 		for i, r in enumerate(self._ranges):
-			if n - len(r) > 0:
+			k = i
+			if n - len(r) >= 0:
 				n -= len(r)
 			else:
 				break
 
-		self._ranges = self._ranges[i:]
+		self._ranges = self._ranges[k:]
 		r = self._ranges[0]
 		self._ranges[0] = range(n + r[0], r[-1] + 1)
+		assert len(self._ranges[0]) > 0, "Invalid ranges[0], remove_first"
 
 	def add_range(self, r):
 		if type(r) is not range:
@@ -121,6 +123,7 @@ class IntegerSet:
 			start = self._ranges[merge_left][0] if merge_left is not None else r[0]
 			end = self._ranges[merge_right][-1] + 1 if merge_right is not None else r[-1] + 1
 			new_r = range(start, end)
+			assert len(new_r) > 0, "Invalid new_r"
 
 			del_offset = 0
 			if merge_left is not None:
@@ -148,6 +151,8 @@ class IntegerSet:
 
 	def remove_set(self, other):
 		for r in other._ranges:
+			if len(r) == 0:
+				print("empty range")
 			self.remove_range(r)
 
 	def remove_range(self, target_r):
@@ -179,6 +184,11 @@ class IntegerSet:
 	def contains_range(self, r):
 		if len(r) == 0:
 			return True
+		elif len(r) > len(self):
+			return False
+		elif r[-1] < self._ranges[0][0] or r[0] >= self._ranges[-1][-1]:
+			return False
+
 		for elem in self._ranges:
 			if self._range_contains(elem, r):
 				return True

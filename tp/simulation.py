@@ -1,4 +1,5 @@
 import math
+import stats
 import random
 from server import Server
 from client import Client
@@ -32,6 +33,7 @@ class Simulation:
 		self.stats_interval = float(settings['UpdateStatsInterval']) * 60
 
 		self.clients = []
+		stats.setup_stats(self)
 
 	def gen_client_up(self):
 		return random.normalvariate(self.client_up_mu, self.client_up_sigma)
@@ -72,7 +74,7 @@ class Simulation:
 	def stats_update_loop(self):
 		while True:
 			yield self.env.timeout(self.stats_interval)
-			print("client count: ", len(self.clients), " at: ", self.env.now)
+			stats.update_stats(self)
 
 	def client_disconnected(self, client):
 		self.clients.remove(client)
