@@ -5,7 +5,7 @@ class Connection:
 	SPEED_MODIFIED = 1
 	CLOSED = 2
 
-	__slots__ = ["sim", "origin", "destination", "speed", "requested", "action"]
+	__slots__ = ["sim", "origin", "destination", "speed", "requested", "action", "isp2p"]
 
 	def __init__(self, sim, origin, destination, speed, requested):
 		if speed <= 0:
@@ -16,6 +16,7 @@ class Connection:
 		self.speed = speed
 		self.requested = requested
 		self.action = None
+		self.isp2p = self.origin is not sim.HTTPServer
 
 	def begin(self):
 		"""
@@ -24,6 +25,7 @@ class Connection:
 		instance of Connection should start the start_transfer only once, 
 		and once it is finished, be discarded.
 		"""
+		self.sim.connection_started(self)
 		self.action = self.sim.env.process(self.start_transfer())
 
 	def interrupt(self, info):

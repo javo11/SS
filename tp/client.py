@@ -9,6 +9,7 @@ class Client(Host):
 	def __init__(self, sim, down_mbps, up_mbps, wait_time):
 		super().__init__(sim, down_mbps, up_mbps)
 		self._wait_time = wait_time
+		self._joined_time = sim.env.now
 
 	def begin(self):
 		"""
@@ -16,7 +17,7 @@ class Client(Host):
 		server.
 		"""
 		self._pending = IntegerSet(range(self.sim.piece_count))
-		self._target_chunk_size = math.ceil(self.sim.piece_count / 5)
+		self._target_chunk_size = math.ceil(self.sim.piece_count / self.sim.pieces_split_size)
 		self._request_pieces()
 
 	def get_random_chunk(self):
@@ -53,8 +54,6 @@ class Client(Host):
 					c.begin()
 
 					self._pending.remove_set(intersection)
-
-		self.bandwidth_check_down()
 
 		if not len(self._pending) or \
 			not self.has_download_space() or \
@@ -111,6 +110,8 @@ class Client(Host):
 			self._pending.add_set(c.requested)
 
 		if len(self.pieces) == self.sim.piece_count:
+			self._completed_time = (self.sim.env.now - self._joined_time) / 60
+			self.sim.client_completed(self)
 			self.sim.env.process(self.disconnect())
 		else:
 			self._request_pieces()
