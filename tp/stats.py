@@ -32,12 +32,16 @@ def update_stats(sim, draw):
 	plot_vs_time(sim, sim.clients_plot, sim.clients_hist)
 	plot_vs_time(sim, sim.connections_plot, sim.p2p_conn_hist)
 	plot_vs_time(sim, sim.connections_plot, sim.http_conn_hist, False)
-	plot_vs_time(sim, sim.comp_avg_plot, sim.completion_avg_hist)
+	# plot_vs_time(sim, sim.comp_avg_plot, sim.completion_avg_hist)
+
+	sim.comp_avg_plot.clear()
+	sim.comp_avg_plot.hist(sim.completion_times, bins=30, histtype='step')
+
 	plot_vs_time(sim, sim.comp_count_plot, sim.completion_count_hist)
 
 	sim.clients_plot.legend(["clients"], loc=4, framealpha=0.7)
 	sim.connections_plot.legend(["P2P", "HTTP"], loc=4, framealpha=0.7)
-	sim.comp_avg_plot.legend(["avg. download time (minutes)"], loc=4, framealpha=0.7)
+	sim.comp_avg_plot.legend(["download times (minutes)"], loc=4, framealpha=0.7)
 	sim.comp_count_plot.legend(["completed clients"], loc=4, framealpha=0.7)
 
 	plt.draw()

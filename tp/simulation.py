@@ -41,6 +41,7 @@ class Simulation:
 		self.http_conn_count = 0
 		self.completed_clients = 0
 		self.completion_time_avg = 0
+		self.completion_times = []
 		stats.setup_stats(self)
 
 	def gen_client_up(self):
@@ -90,6 +91,7 @@ class Simulation:
 
 	def client_completed(self, client):
 		self.completed_clients += 1
+		self.completion_times.append(client._completed_time)
 		self.completion_time_avg += (client._completed_time - self.completion_time_avg) / self.completed_clients
 
 	def client_disconnected(self, client):
