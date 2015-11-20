@@ -40,6 +40,7 @@ class Simulation:
 		self.torrent_threshold = float(settings['TorrentThreshold'])
 
 		self.clients = []
+		self.active_clients_count = 0
 
 		self.update_stats_count = 0
 		self.p2p_conn_count = 0
@@ -64,11 +65,12 @@ class Simulation:
 		"""
 		#random.seed(1338) #remove
 
-		self.arrival_param = self.expected_clients
-		self.arrival_param /= self.interval_duration * 60 * 60
+		self.arrival_param = (self.intervals[0] / 100) * self.expected_clients
+		self.arrival_param /= self.interval_duration
 
 		self.env.process(self.client_interval_loop())
 		self.env.process(self.client_arrival_loop())
+		self.env.process(self.debug_loop())
 		self.env.run(until=self.run_time)
 
 		print("SIMULATION ENDED")
@@ -77,9 +79,9 @@ class Simulation:
 
 	def client_interval_loop(self):
 		for i in self.intervals[1:]:
-			yield self.env.timeout(self.interval_duration * 60 * 60)
+			yield self.env.timeout(self.interval_duration)
 			self.arrival_param = (i / 100) * self.expected_clients
-			self.arrival_param /= self.interval_duration * 60 * 60
+			self.arrival_param /= self.interval_duration
 
 
 	def client_arrival_loop(self):
@@ -91,12 +93,20 @@ class Simulation:
 		while True:
 			t = random.expovariate(self.arrival_param)
 			yield self.env.timeout(t)
-
 			c = Client(self, self.gen_client_down(), self.gen_client_up(), self.gen_client_wait_time())
 			self.clients.append(c)
 			c.begin()
 			client_count += 1
 			self.clients_hist.append((self.env.now, len(self.clients)))
+			self.active_clients_count += 1
+			self.active_clients_hist.append((self.env.now, self.active_clients_count))
+			# print("hit list: " + str(len(self.clients_hist)) + " client count: " + str(client_count))
+		
+	def debug_loop(self):
+		while True:
+			yield self.env.timeout(1800)
+			print("clients :" + str(len(self.clients)) + " http: " + str(self.http_conn_count))
+
 
 	def client_completed(self, client):
 		self.completed_clients += 1
@@ -104,6 +114,8 @@ class Simulation:
 		self.completion_time_avg += (client._completed_time - self.completion_time_avg) / self.completed_clients
 		self.completion_avg_hist.append((self.env.now, self.completion_time_avg))
 		self.completion_count_hist.append((self.env.now, self.completed_clients))
+		self.active_clients_count -= 1
+		self.active_clients_hist.append((self.env.now, self.active_clients_count))
 
 	def client_disconnected(self, client):
 		self.clients.remove(client)

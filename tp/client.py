@@ -53,7 +53,6 @@ class Client(Host):
 					c = client.upload_to(self, self.avail_download_space(), intersection)
 					self.downloads.append(c)
 					c.begin()
-
 					self._pending.remove_set(intersection)
 
 		if not len(self._pending) or \
@@ -64,12 +63,7 @@ class Client(Host):
 
 		next_chunk = self.get_random_chunk()
 		c = HTTPServer.upload_to(self, self.avail_download_space(), next_chunk)
-		try:
-			self._pending.remove_set(next_chunk)
-		except:
-			print(len(next_chunk))
-			import code; code.interact(local=locals())
-			raise
+		self._pending.remove_set(next_chunk)
 
 		self.downloads.append(c)
 		c.begin()

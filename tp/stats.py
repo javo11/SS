@@ -10,6 +10,7 @@ def setup_stats(sim):
 	sim.comp_count_plot = fig.add_subplot(2, 2, 4)
 
 	sim.clients_hist = []
+	sim.active_clients_hist = []
 	sim.p2p_conn_hist = []
 	sim.http_conn_hist = []
 	sim.completion_avg_hist = []
@@ -17,6 +18,7 @@ def setup_stats(sim):
 
 def plot_stats(sim):
 	plot_vs_time(sim, sim.clients_plot, sim.clients_hist)
+	plot_vs_time(sim, sim.clients_plot, sim.active_clients_hist, False)
 	plot_vs_time(sim, sim.connections_plot, sim.p2p_conn_hist)
 	plot_vs_time(sim, sim.connections_plot, sim.http_conn_hist, False)
 	# plot_vs_time(sim, sim.comp_avg_plot, sim.completion_avg_hist)
@@ -26,7 +28,7 @@ def plot_stats(sim):
 
 	plot_vs_time(sim, sim.comp_count_plot, sim.completion_count_hist)
 
-	sim.clients_plot.legend(["clients"], loc=4, framealpha=0.7)
+	sim.clients_plot.legend(["clients", "active clients"], loc=4, framealpha=0.7)
 	sim.connections_plot.legend(["P2P", "HTTP"], loc=4, framealpha=0.7)
 	sim.comp_avg_plot.legend(["download times (minutes)"], loc=4, framealpha=0.7)
 	sim.comp_count_plot.legend(["completed clients"], loc=4, framealpha=0.7)
