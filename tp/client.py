@@ -10,10 +10,11 @@ class Client(Host):
 		super().__init__(sim, down_mbps, up_mbps)
 		self._wait_time = wait_time
 		self._joined_time = sim.env.now
+		self._finished = False
 
 	def begin(self):
 		"""
-		Client start point.  Initially, it requests all pieces from the HTTP 
+		Client start point.  Initially, it requests all pieces from the HTTP
 		server.
 		"""
 		self._pending = IntegerSet(range(self.sim.piece_count))
@@ -24,9 +25,9 @@ class Client(Host):
 		split_n = math.floor(len(self._pending) / self._target_chunk_size)
 		if split_n == 0:
 			return self._pending.copy()
-		
+
 		return random.choice(self._pending.split(split_n))
-			
+
 
 	def _request_pieces(self):
 		HTTPServer = self.sim.HTTPServer
@@ -90,7 +91,7 @@ class Client(Host):
 		return c
 
 	def external_transfer_finished(self, c):
-		if len(self._pending):
+		if len(self._pending) and not self._finished:
 			self._request_pieces()
 
 	def upload_finished(self, c):
@@ -101,6 +102,9 @@ class Client(Host):
 		Download finished callback.  Decide what to download next here.
 		"""
 		self.downloads.remove(c)
+		if self._finished:
+			return
+
 		if completed or transfered == len(c.requested):
 			self.pieces.add_set(c.requested)
 		else:
@@ -109,7 +113,10 @@ class Client(Host):
 			c.requested.remove_set(transfered_pieces)
 			self._pending.add_set(c.requested)
 
-		if len(self.pieces) == self.sim.piece_count:
+		if len(self.pieces) >= self.sim.piece_count:
+			self._finished = True
+			for download in self.downloads:
+				download.interrupt((Connection.CLOSED,)) # single-element tuple
 			self._completed_time = (self.sim.env.now - self._joined_time) / 60
 			self.sim.client_completed(self)
 			self.sim.env.process(self.disconnect())

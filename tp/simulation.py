@@ -22,17 +22,22 @@ class Simulation:
 		self.client_wait_time_mu = float(settings['ClientWaitTimeMu']) * 60
 		self.client_wait_time_sigma = float(settings['ClientWaitTimeSigma']) * 60
 
-		self.arrival_param = float(settings['ClientsPerDay']) / (24 * 60 * 60)
+		self.expected_clients = int(settings['ClientsPerCampaign'])
 		self.mtu = int(settings['MTU'])
 		self.file_size = float(settings['FileSizeGB']) * (1024 ** 3)
 		self.piece_count = math.ceil(self.file_size / self.mtu)
 		self.HTTPServer = Server(self, 0, int(settings['HTTPUp']))
-		self.run_time = float(settings['TimeLimitDays']) * 24 * 60 * 60
+
+		self.run_time = int(settings['TimeLimitHours']) * 60 * 60
+		self.interval_duration = int(settings['IntervalDurationHours']) * 60 * 60
+		interval_count = self.run_time // self.interval_duration
+		self.intervals = [int(p) for p in settings['IntervalPercentages'].split()]
+		assert len(self.intervals) == interval_count
+		assert sum(self.intervals) == 100
+
 		self.pieces_split_size = int(settings['InitialSplitSize'])
 
 		self.torrent_threshold = float(settings['TorrentThreshold'])
-		self.stats_interval = float(settings['UpdateStatsInterval']) * 60
-		self.draw_every = int(settings['DrawEvery'])
 
 		self.clients = []
 
@@ -57,14 +62,25 @@ class Simulation:
 		"""
 		Spawn the client_arrival_loop process.
 		"""
-		random.seed(1338)
+		#random.seed(1338) #remove
 
+		self.arrival_param = self.expected_clients
+		self.arrival_param /= self.interval_duration * 60 * 60
+
+		self.env.process(self.client_interval_loop())
 		self.env.process(self.client_arrival_loop())
-		self.env.process(self.stats_update_loop())
 		self.env.run(until=self.run_time)
 
 		print("SIMULATION ENDED")
+		stats.plot_stats(self)
 		stats.stats_end(self)
+
+	def client_interval_loop(self):
+		for i in self.intervals[1:]:
+			yield self.env.timeout(self.interval_duration * 60 * 60)
+			self.arrival_param = (i / 100) * self.expected_clients
+			self.arrival_param /= self.interval_duration * 60 * 60
+
 
 	def client_arrival_loop(self):
 		"""
@@ -76,38 +92,38 @@ class Simulation:
 			t = random.expovariate(self.arrival_param)
 			yield self.env.timeout(t)
 
-			# print("New client arrived at: " + str(self.env.now))
 			c = Client(self, self.gen_client_down(), self.gen_client_up(), self.gen_client_wait_time())
 			self.clients.append(c)
 			c.begin()
 			client_count += 1
-
-	def stats_update_loop(self):
-		while True:
-			yield self.env.timeout(self.stats_interval)
-			self.update_stats_count += 1
-			draw = self.update_stats_count % self.draw_every == 0
-			stats.update_stats(self, draw)
+			self.clients_hist.append((self.env.now, len(self.clients)))
 
 	def client_completed(self, client):
 		self.completed_clients += 1
 		self.completion_times.append(client._completed_time)
 		self.completion_time_avg += (client._completed_time - self.completion_time_avg) / self.completed_clients
+		self.completion_avg_hist.append((self.env.now, self.completion_time_avg))
+		self.completion_count_hist.append((self.env.now, self.completed_clients))
 
 	def client_disconnected(self, client):
 		self.clients.remove(client)
+		self.clients_hist.append((self.env.now, len(self.clients)))
 
 	def connection_started(self, c):
 		if c.isp2p:
 			self.p2p_conn_count += 1
+			self.p2p_conn_hist.append((self.env.now, self.p2p_conn_count))
 		else:
 			self.http_conn_count += 1
+			self.http_conn_hist.append((self.env.now, self.http_conn_count))
 
 	def connection_ended(self, c):
 		if c.isp2p:
 			self.p2p_conn_count -= 1
+			self.p2p_conn_hist.append((self.env.now, self.p2p_conn_count))
 		else:
 			self.http_conn_count -= 1
+			self.http_conn_hist.append((self.env.now, self.http_conn_count))
 
 		for client in self.clients:
 			client.connection_ended(c)

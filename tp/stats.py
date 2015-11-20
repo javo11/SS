@@ -15,20 +15,7 @@ def setup_stats(sim):
 	sim.completion_avg_hist = []
 	sim.completion_count_hist = []
 
-def update_stats(sim, draw):
-	sim.clients_hist.append(len(sim.clients))
-	sim.p2p_conn_hist.append(sim.p2p_conn_count)
-	sim.http_conn_hist.append(sim.http_conn_count)
-	sim.completion_avg_hist.append(sim.completion_time_avg)
-	sim.completion_count_hist.append(sim.completed_clients)
-
-	print("P2P connections: ", sim.p2p_conn_count)
-	print("HTTP connections: ", sim.http_conn_count)
-	print("Client count: ", len(sim.clients))
-	
-	if not draw:
-		return
-
+def plot_stats(sim):
 	plot_vs_time(sim, sim.clients_plot, sim.clients_hist)
 	plot_vs_time(sim, sim.connections_plot, sim.p2p_conn_hist)
 	plot_vs_time(sim, sim.connections_plot, sim.http_conn_hist, False)
@@ -43,16 +30,14 @@ def update_stats(sim, draw):
 	sim.connections_plot.legend(["P2P", "HTTP"], loc=4, framealpha=0.7)
 	sim.comp_avg_plot.legend(["download times (minutes)"], loc=4, framealpha=0.7)
 	sim.comp_count_plot.legend(["completed clients"], loc=4, framealpha=0.7)
-
 	plt.draw()
 
 def plot_vs_time(sim, plot, data, clear=True):
-	interval = int(sim.stats_interval)
-	elapsed = range(interval, int(sim.env.now) + interval, interval)
-	assert len(elapsed) == len(data)
+	times = [v[0] for v in data]
+	values = [v[1] for v in data]
 	if clear:
 		plot.clear()
-	plot.plot(elapsed, data)
+	plot.plot(times, values)
 
 def stats_end(sim):
 	plt.show(block=True)
