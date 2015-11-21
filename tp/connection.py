@@ -85,8 +85,8 @@ class Connection:
 		transfered_count = len(self.requested) if completed else transfered_count
 
 		# Invoke callbacks
-		self.destination.download_finished(self, completed, transfered_count)
 		self.origin.upload_finished(self)
+		self.destination.download_finished(self, completed, transfered_count)
 		self.sim.connection_ended(self)
 
 	def time_to_transfer(self, packet_count):

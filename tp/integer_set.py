@@ -7,10 +7,12 @@ class IntegerSet:
 	ascending order.
 	"""
 
-	__slots__ = ["_ranges"]
+	__slots__ = ["_ranges", "_len", "_dirty"]
 
 	def __init__(self, r = None):
 		self._ranges = [r] if r and len(r) > 0 else []
+		self._dirty = True
+		self._len = 0
 
 	def add_num(self, n):
 		self.add_range(range(n, n + 1))
@@ -81,6 +83,8 @@ class IntegerSet:
 	def remove_first(self, n):
 		if (n > len(self)):
 			raise Exception("Set contains less elements than requested amount")
+
+		self._dirty = True
 		k = 0
 		for i, r in enumerate(self._ranges):
 			k = i
@@ -100,6 +104,8 @@ class IntegerSet:
 
 		if len(r) == 0 or self.contains_range(r):
 			return
+
+		self._dirty = True
 
 		self._removed_contained_by(r)
 		merge_left = None
@@ -144,7 +150,10 @@ class IntegerSet:
 		return itertools.chain.from_iterable(self._ranges)
 
 	def __len__(self):
-		return sum(len(elem) for elem in self._ranges)
+		if self._dirty:
+			dirty = False
+			self._len = sum(len(elem) for elem in self._ranges)		
+		return self._len
 
 	def contains_num(self, n):
 		return self.contains_range(range(n, n + 1))
@@ -156,6 +165,7 @@ class IntegerSet:
 			self.remove_range(r)
 
 	def remove_range(self, target_r):
+		self._dirty = True
 		self._removed_contained_by(target_r)
 		left_range = None
 		right_range = None

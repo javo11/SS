@@ -11,6 +11,7 @@ class Client(Host):
 		self._wait_time = wait_time
 		self._joined_time = sim.env.now
 		self._finished = False
+		self.has_acceptable_pctg = False
 
 	def begin(self):
 		"""
@@ -37,6 +38,8 @@ class Client(Host):
 
 		if HTTPServer.can_use_torrent():
 			for client in self.sim.clients:
+				if client is self:
+					continue
 				if not self.has_download_space():
 					break
 				if not client.has_upload_space():
@@ -57,7 +60,7 @@ class Client(Host):
 
 		if not len(self._pending) or \
 			not self.has_download_space() or \
-			not HTTPServer.can_use_http() or \
+			not HTTPServer.can_use_http(self) or \
 			self.connected_to(HTTPServer):
 			return
 
@@ -87,6 +90,7 @@ class Client(Host):
 	def external_transfer_finished(self, c):
 		if len(self._pending) and not self._finished:
 			self._request_pieces()
+		pass
 
 	def upload_finished(self, c):
 		self.uploads.remove(c)
@@ -115,11 +119,19 @@ class Client(Host):
 			self.sim.client_completed(self)
 			self.sim.env.process(self.disconnect())
 		else:
+			if self.sim.HTTPServer.strategy == 2 and not self.has_acceptable_pctg and \
+				len(self.pieces) >= (self.sim.piece_count * self.sim.acceptable_pctg):
+				self.has_acceptable_pctg = True
+				self.sim.acceptable_clients += 1
+
 			self._request_pieces()
 
 	def disconnect(self):
 		yield self.sim.env.timeout(self._wait_time)
 		self.sim.client_disconnected(self)
+
+		if self.sim.HTTPServer.strategy == 2:
+			self.sim.acceptable_clients -= 1
 		for upload in self.uploads:
 			upload.interrupt((Connection.CLOSED,)) # single-element tuple
 		# print("client disconnected")
