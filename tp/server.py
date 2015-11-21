@@ -4,20 +4,8 @@ import utils
 import math
 
 class Server(Host):
-	def __init__(self, sim, down_mbps, up_mbps, strategy):
+	def __init__(self, sim, down_mbps, up_mbps):
 		super().__init__(sim, down_mbps, up_mbps)
-		self.set_up_stgy(strategy)
-
-	def set_up_stgy(self, stgy):
-		self.strategy = stgy
-		if stgy == 1:
-			self._can_use_torrent_stgy = self.can_use_torrent_stgy_one
-			self._can_use_http_stgy = self.can_use_http_stgy_one
-		elif stgy == 2:
-			self._can_use_torrent_stgy = self.can_use_torrent_stgy_two
-			self._can_use_http_stgy = self.can_use_http_stgy_one
-		else:
-			raise Exception("Invalid strategy")
 
 	def upload_finished(self, con):
 		self.uploads.remove(con)
@@ -75,7 +63,7 @@ class Server(Host):
 		"""
 		Transfer pieces from self to other
 		"""
-		if not self.can_use_http(other):
+		if not self.can_use_http():
 			raise Exception("HTTP downloads are not enabled")
 
 		if not self.uploads:
@@ -95,26 +83,14 @@ class Server(Host):
 
 		return c
 
-	def can_use_torrent_stgy_one(self):
+	def can_use_torrent(self):
 		return self.avail_upload_space() < (1 - self.sim.torrent_threshold) * self.up_mbps
 
-	def can_use_http_stgy_one(self, client):
+	def can_use_http(self):
 		if not self.uploads:
 			return True
 		per_cl_up = self.up_mbps / len(self.uploads)
 		return per_cl_up > (self.sim.client_down_mu * self.sim.http_down_threshold)
-
-	def can_use_torrent_stgy_two(self):
-		return self.sim.acceptable_clients >= (len(self.sim.clients) * self.sim.acceptable_clients_pctg)
-
-	def can_use_http_stgy_two(self, client):
-		return self.avail_upload_space() >= (client.down_mbps * self.sim.http_down_threshold)
-
-	def can_use_torrent(self):
-		return self._can_use_torrent_stgy()
-
-	def can_use_http(self, client):
-		return self._can_use_http_stgy(client)
 
 	def create_upload_space(self, speed):
 		"""

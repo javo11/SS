@@ -11,7 +11,6 @@ class Client(Host):
 		self._wait_time = wait_time
 		self._joined_time = sim.env.now
 		self._finished = False
-		self.has_acceptable_pctg = False
 
 	def begin(self):
 		"""
@@ -60,7 +59,7 @@ class Client(Host):
 
 		if not len(self._pending) or \
 			not self.has_download_space() or \
-			not HTTPServer.can_use_http(self) or \
+			not HTTPServer.can_use_http() or \
 			self.connected_to(HTTPServer):
 			return
 
@@ -119,19 +118,12 @@ class Client(Host):
 			self.sim.client_completed(self)
 			self.sim.env.process(self.disconnect())
 		else:
-			if self.sim.HTTPServer.strategy == 2 and not self.has_acceptable_pctg and \
-				len(self.pieces) >= (self.sim.piece_count * self.sim.acceptable_pctg):
-				self.has_acceptable_pctg = True
-				self.sim.acceptable_clients += 1
-
 			self._request_pieces()
 
 	def disconnect(self):
 		yield self.sim.env.timeout(self._wait_time)
 		self.sim.client_disconnected(self)
 
-		if self.sim.HTTPServer.strategy == 2:
-			self.sim.acceptable_clients -= 1
 		for upload in self.uploads:
 			upload.interrupt((Connection.CLOSED,)) # single-element tuple
 		# print("client disconnected")

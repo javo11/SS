@@ -26,7 +26,7 @@ class Simulation:
 		self.mtu = int(settings['MTU'])
 		self.file_size = float(settings['FileSizeGB']) * (1024 ** 3)
 		self.piece_count = math.ceil(self.file_size / self.mtu)
-		self.HTTPServer = Server(self, 0, int(settings['HTTPUp']), int(settings['Strategy']))
+		self.HTTPServer = Server(self, 0, int(settings['HTTPUp']))
 
 		self.run_time = int(settings['TimeLimitHours']) * 60 * 60
 		self.interval_duration = int(settings['IntervalDurationHours']) * 60 * 60
@@ -41,12 +41,8 @@ class Simulation:
 
 		self.http_down_threshold = float(settings['HTTPDownThreshold'])
 
-		self.acceptable_pctg = float(settings['AcceptablePctg'])
-		self.acceptable_clients_pctg = float(settings['AcceptableClientsPctg'])
-
 		self.clients = []
 		self.active_clients_count = 0
-		self.acceptable_clients = 0
 
 		self.update_stats_count = 0
 		self.p2p_conn_count = 0
