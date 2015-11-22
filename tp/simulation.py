@@ -76,7 +76,7 @@ class Simulation:
 
 		self.env.process(self.client_interval_loop())
 		self.env.process(self.client_arrival_loop())
-		self.env.process(self.debug_loop())
+		#self.env.process(self.debug_loop())
 		self.env.run(until=self.run_time)
 
 		print("SIMULATION ENDED")
