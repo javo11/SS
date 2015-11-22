@@ -24,9 +24,11 @@ class Simulation:
 
 		self.expected_clients = int(settings['ClientsPerCampaign'])
 		self.mtu = int(settings['MTU'])
-		self.file_size = float(settings['FileSizeGB']) * (1024 ** 3)
+		self.file_size_gb = float(settings['FileSizeGB'])
+		self.file_size = self.file_size_gb * (1024 ** 3)
 		self.piece_count = math.ceil(self.file_size / self.mtu)
-		self.HTTPServer = Server(self, 0, int(settings['HTTPUp']))
+		self.http_up = int(settings['HTTPUp'])
+		self.HTTPServer = Server(self, 0, self.http_up)
 
 		self.run_time = int(settings['TimeLimitHours']) * 60 * 60
 		self.interval_duration = int(settings['IntervalDurationHours']) * 60 * 60
@@ -36,10 +38,12 @@ class Simulation:
 		assert sum(self.intervals) == 100
 
 		self.pieces_split_size = int(settings['InitialSplitSize'])
-
 		self.torrent_threshold = float(settings['TorrentThreshold'])
-
 		self.http_down_threshold = float(settings['HTTPDownThreshold'])
+
+		obj_dl_time_factor = float(settings['ObjDLTimeFactor'])
+		self.obj_dl_time = self.file_size / (self.client_down_mu * (1024 ** 2))
+		self.obj_dl_time *= obj_dl_time_factor
 
 		self.clients = []
 		self.active_clients_count = 0
@@ -103,7 +107,7 @@ class Simulation:
 			self.active_clients_count += 1
 			self.active_clients_hist.append((self.env.now, self.active_clients_count))
 			# print("hit list: " + str(len(self.clients_hist)) + " client count: " + str(client_count))
-		
+
 	def debug_loop(self):
 		while True:
 			yield self.env.timeout(1800)

@@ -3,7 +3,7 @@ import math
 
 class IntegerSet:
 	"""
-	Represents a set of integers.  Can be iterated over, in 
+	Represents a set of integers.  Can be iterated over, in
 	ascending order.
 	"""
 
@@ -24,14 +24,14 @@ class IntegerSet:
 	def intersect(self, other):
 		A = self.copy()
 		A.add_set(other)
-		
+
 		q = A.copy()
 		q.remove_set(other)
 
 		r = other.copy()
 		r.add_set(self)
 		r.remove_set(self)
-		
+
 		A.remove_set(q)
 		A.remove_set(r)
 		return A
@@ -152,7 +152,7 @@ class IntegerSet:
 	def __len__(self):
 		if self._dirty:
 			dirty = False
-			self._len = sum(len(elem) for elem in self._ranges)		
+			self._len = sum(len(elem) for elem in self._ranges)
 		return self._len
 
 	def contains_num(self, n):
@@ -161,7 +161,7 @@ class IntegerSet:
 	def remove_set(self, other):
 		for r in other._ranges:
 			if len(r) == 0:
-				print("empty range")
+				continue
 			self.remove_range(r)
 
 	def remove_range(self, target_r):
@@ -169,13 +169,13 @@ class IntegerSet:
 		self._removed_contained_by(target_r)
 		left_range = None
 		right_range = None
-		for i, r in enumerate(self._ranges):  
+		for i, r in enumerate(self._ranges):
 			if r[0] > target_r[-1]:
 				break
 
 			if r[-1] < target_r[0]:
 				continue
-			
+
 			if r[0] < target_r[0]:
 				left_range = i
 			else:
@@ -186,7 +186,7 @@ class IntegerSet:
 			self._ranges[left_range] = range(r[0], target_r[0])
 			if right_range is None:
 				self.add_range(range(target_r[-1] + 1, r[-1] + 1))
-			
+
 		if right_range is not None:
 			r = self._ranges[right_range]
 			self._ranges[right_range] = range(target_r[-1] + 1, r[-1] + 1)
