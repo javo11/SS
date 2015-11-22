@@ -72,7 +72,7 @@ def main():
 	filename = 'results/Results_' + settings['FileSizeGB'] + '_' + settings['TorrentThreshold'] + '_' + settings['HTTPDownThreshold'] \
 		+ '_' + settings['HTTPUp'] + '_'  + str(random.randint(0,10000)) + '.xlsx'
 
-	print("Saving to: " + filename)
+	print("Saving XLSX to: " + filename)
 	wb = xs.Workbook(filename)
 
 	ws = wb.add_worksheet()

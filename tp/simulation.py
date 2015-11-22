@@ -12,6 +12,7 @@ class Simulation:
 
 	def __init__(self, env, settings, should_plot):
 		self.env = env
+		self.settings = settings
 		self.should_plot = should_plot
 		self.client_up_mu = float(settings['ClientUpMu'])
 		self.client_up_sigma = float(settings['ClientUpSigma'])

@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
+import random
 
 def setup_stats(sim):
 	if sim.should_plot:
-		plt.ion()
+		#plt.ion()
 		fig = plt.figure(figsize=(20,10))
 		sim.fig = fig
 
@@ -56,7 +57,12 @@ def plot_stats(sim):
 	title += "ServerBW: " + str(sim.http_up)
 	sim.fig.suptitle(title, fontsize=18, fontweight="bold")
 
-	plt.draw()
+	settings = sim.settings
+	filename = 'results/Results_' + settings['FileSizeGB'] + '_' + settings['TorrentThreshold'] + '_' + settings['HTTPDownThreshold'] \
+		+ '_' + settings['HTTPUp'] + '_'  + str(random.randint(0,10000)) + '.png'
+	print("Saving PNG to: " + filename)
+	plt.savefig(filename)
+	plt.close(sim.fig)
 
 def plot_vs_time(sim, plot, data, clear=True):
 	times = [v[0] for v in data]
