@@ -5,6 +5,7 @@ import xlsxwriter as xs
 import math
 import random
 import scipy.stats
+import sys
 from simulation import Simulation
 
 def main():
@@ -43,6 +44,10 @@ def main():
 		sim.run()
 		results.append(sim.results)
 		i += 1
+
+		if settings['RunOnce'] == 'yes':
+			print("RUN ONCE")
+			sys.exit()
 
 		completed_vals.append(sim.results['completed_count'])
 		exceeded_vals.append(sim.results['exceeded_proportion'])
