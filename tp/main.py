@@ -22,19 +22,24 @@ def main():
 	exceeded_obj_hw = float(settings["ExceededPctgHW"])
 	significance_level = float(settings["SignificanceLevel"])
 	z_val_two_tails = scipy.stats.norm.ppf(1 - (significance_level / 2))
-	z_val_one_tail = scipy.stats.norm.ppf(1 - significance_level)
 
 	print("Completed Target HW: " + str(completed_obj_hw))
 	print("Exceeded Target HW: " + str(exceeded_obj_hw))
 
 	completed_vals = []
 	exceeded_vals = []
+	done = False
+
+	completed_avg = 0
+	exceeded_avg = 0
+	completed_hw = 0
+	exceeded_hw = 0
 
 	i = 0
-	while i < 10:
+	while not done:
 		print("RUN: " + str(i + 1))
 		env = simpy.Environment()
-		sim = Simulation(env, settings, i == 9)
+		sim = Simulation(env, settings, i == 0)
 		sim.run()
 		results.append(sim.results)
 		i += 1
@@ -51,11 +56,24 @@ def main():
 		completed_S = math.sqrt(completed_S)
 		completed_hw = (z_val_two_tails * completed_S) / math.sqrt(i)
 		print("runs: " + str(i) + " completed HW: " + str(completed_hw))
+
+		exceeded_avg = sum(exceeded_vals) / len(exceeded_vals)
+		exceeded_S = math.sqrt(exceeded_avg * (1 - exceeded_avg))
+		exceeded_hw = (z_val_two_tails * exceeded_S) / math.sqrt(i)
+		print("runs: " + str(i) + " exceeded HW: " + str(exceeded_hw))
+
+		if completed_hw < completed_obj_hw and exceeded_hw < exceeded_obj_hw:
+			print("END ITERATIONS")
+			done = True
+
 		print("---------------")
 
 
-	wb = xs.Workbook('results/Results_' + settings['FileSizeGB'] + '_' + settings['TorrentThreshold'] + '_' + settings['HTTPDownThreshold'] \
-		+ '_' + settings['HTTPUp'] + '_'  + str(random.randint(0,10000)) + '.xlsx')
+	filename = 'results/Results_' + settings['FileSizeGB'] + '_' + settings['TorrentThreshold'] + '_' + settings['HTTPDownThreshold'] \
+		+ '_' + settings['HTTPUp'] + '_'  + str(random.randint(0,10000)) + '.xlsx'
+
+	print("Saving to: " + filename)
+	wb = xs.Workbook(filename)
 
 	ws = wb.add_worksheet()
 
@@ -70,8 +88,12 @@ def main():
 		i += 1
 
 	ws.write(i, 0, 'average')
-	ws.write(i, 1, sum(result['exceeded_proportion'] for result in results)/len(results))
-	ws.write(i, 2, sum(result['completed_count'] for result in results)/len(results))
+	ws.write(i, 1, exceeded_avg)
+	ws.write(i, 2, completed_avg)
+	i += 1
+	ws.write(i, 0, 'half width')
+	ws.write(i, 1, exceeded_hw)
+	ws.write(i, 2, completed_hw)
 
 	wb.close()
 
