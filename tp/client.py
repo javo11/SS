@@ -8,7 +8,7 @@ import utils
 class Client(Host):
 	def __init__(self, sim, down_mbps, up_mbps, wait_time):
 		super().__init__(sim, down_mbps, up_mbps)
-		self._wait_time = wait_time
+		self._wait_time = max(0, wait_time)
 		self._joined_time = sim.env.now
 		self._finished = False
 
