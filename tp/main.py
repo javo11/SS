@@ -67,6 +67,9 @@ def main():
 		exceeded_hw = (z_val_two_tails * exceeded_S) / math.sqrt(i)
 		print("runs: " + str(i) + " exceeded HW: " + str(exceeded_hw))
 
+		print("completed_avg: " + str(completed_avg))
+		print("exceeded_avg: " + str(exceeded_avg))
+
 		if completed_hw < completed_obj_hw and exceeded_hw < exceeded_obj_hw:
 			print("END ITERATIONS")
 			done = True

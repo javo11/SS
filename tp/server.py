@@ -76,7 +76,7 @@ class Server(Host):
 			else:
 				# print("SERVER: Rebalancing server upload speeds for new client.")
 				speed = self.create_upload_space(other_mbps)
-				assert(speed <= other_mbps)
+				#assert(speed <= other_mbps)
 
 		c = Connection(self.sim, self, other, speed, indices)
 		self.uploads.append(c)
